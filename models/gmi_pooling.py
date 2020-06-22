@@ -30,14 +30,13 @@ class GMI(nn.Module):
     def forward(self, data, neg_num, samp_bias1, samp_bias2):
 
         x, edge_index, batch = data.x, data.edge_index, data.batch
-        h_1, h_w = self.gcn1(seq1, adj)
-        h_2, _ = self.gcn2(h_1, adj)
 
         h_1_1 = self.gcn1_1(x, edge_index)
         h_2_1 = self.gcn2_1(h_1_1, edge_index)
 
         # I(h_i; x_i)
         res_mi_pos, res_mi_neg = self.disc1(h_2_1, x, process.negative_sampling_tg(batch, neg_num), samp_bias1, samp_bias2)
+        mi_jsd_score = process.sp_func(res_mi_pos) + process.sp_func(torch.mean(res_mi_neg, dim=1))
 
 
         h_neighbor = self.prelu(self.avg_neighbor(h_w, adj_ori))
