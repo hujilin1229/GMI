@@ -6,6 +6,7 @@ import pickle as pkl
 import networkx as nx
 import scipy.sparse as sp
 from models.logreg import LogReg
+from torch_scatter import scatter_add, scatter_max
 
 ###############################################
 # This section of code adapted from tkipf/GCN and Petar Veličković/DGI #
@@ -132,6 +133,33 @@ def negative_sampling(adj_ori, sample_times):
                 break
         sample_list.append(sample_iter)
     return sample_list
+
+def negative_sampling_tg(batch, sample_times):
+
+    num_nodes = scatter_add(batch.new_ones(batch.size(0)), batch, dim=0)
+    batch_size, max_num_nodes = num_nodes.size(0), num_nodes.max().item()
+    cum_num_nodes = torch.cat(
+        [num_nodes.new_zeros(1),
+         num_nodes.cumsum(dim=0)[:-1]], dim=0)
+
+    dense_index_list = []
+    for i in range(batch_size):
+        num_nodes_i = num_nodes[i].item()
+        dense_index = num_nodes.new_zeros(num_nodes_i, max_num_nodes)
+        dense_index[:, :num_nodes_i] = 1
+        dense_index[torch.arange(num_nodes_i), torch.arange(num_nodes_i)] = 0
+        dense_index_list.append(dense_index)
+
+    dense_index_list = torch.cat(dense_index_list, dim=0) # n_rows = total_num_nodes
+
+    rnd_choices = torch.multinomial(dense_index_list.float(), sample_times, replacement=True)
+    for i in range(batch_size):
+        num_nodes_i = num_nodes[i].item()
+        ind_start = cum_num_nodes[i].item()
+        rnd_choices[ind_start:ind_start+num_nodes_i] += ind_start
+
+    return rnd_choices
+
 
 def mi_loss_jsd(pos, neg):
     e_pos = torch.mean(sp_func(-pos))
