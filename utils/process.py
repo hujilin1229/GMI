@@ -166,6 +166,12 @@ def mi_loss_jsd(pos, neg):
     e_neg = torch.mean(torch.mean(sp_func(neg),0))
     return e_pos+e_neg
 
+def mi_loss_jsd_tg(pos, neg):
+    ""
+    e_pos = torch.mean(sp_func(-pos))
+    e_neg = torch.mean(torch.mean(sp_func(neg),0))
+    return e_pos+e_neg
+
 def reconstruct_loss(pre, gnd):
     nodes_n = gnd.shape[0]
     edges_n = np.sum(gnd)/2
