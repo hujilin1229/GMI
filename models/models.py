@@ -24,7 +24,7 @@ class Model(torch.nn.Module):
         self.conv3 = GCN(self.nhid, self.nhid)
 
         # (n_in, n_h, ratio=0.8, sample=False, sparse=False, sl=True):
-        self.pool1 = GMI_Pool(self.nhid, self.num_features, self.pooling_ratio, self.sample, self.sparse, self.sl)
+        self.pool1 = GMI_Pool(self.num_features, self.nhid, self.pooling_ratio, self.sample, self.sparse, self.sl)
         self.pool2 = GMI_Pool(self.nhid, self.nhid, self.pooling_ratio, self.sample, self.sparse, self.sl)
 
         self.lin1 = torch.nn.Linear(self.nhid * 2, self.nhid)

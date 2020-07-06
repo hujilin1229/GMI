@@ -62,7 +62,7 @@ class GMI_Pool(nn.Module):
         # self.in_channels = n_in
         self.negative_slop = negative_slop
         self.lamb = lamb
-        self.att = Parameter(torch.Tensor(1, n_in * 2))
+        self.att = Parameter(torch.Tensor(1, n_h * 2))
         nn.init.xavier_uniform_(self.att.data)
         self.sparse_attention = Sparsemax()
 
@@ -89,7 +89,7 @@ class GMI_Pool(nn.Module):
         """
 
         # I(h_i; x_i)
-        res_mi_pos, res_mi_neg = self.disc1(h, x, process.negative_sampling_tg(batch, neg_num), samp_bias1, samp_bias2)
+        res_mi_pos, res_mi_neg = self.disc1(x, h, process.negative_sampling_tg(batch, neg_num), samp_bias1, samp_bias2)
         mi_jsd_score = process.sp_func(res_mi_pos) + process.sp_func(torch.mean(res_mi_neg, dim=1))
 
         # Graph Pooling
