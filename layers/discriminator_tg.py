@@ -28,7 +28,9 @@ class Discriminator_tg(nn.Module):
         :return: num_nodes, num_nodes x num_neg
         """
 
-        sc_1 = torch.squeeze(self.f_k(h_pl, h_c), 2)
+        x = self.f_k(h_pl, h_c)
+        # print(x.shape)
+        sc_1 = torch.squeeze(x, 1)
         sc_1 = self.act(sc_1)
 
         # h_pl, h_c: num_nodes x num_feature
