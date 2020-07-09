@@ -13,6 +13,7 @@ from torch_geometric.utils import softmax, dense_to_sparse, add_remaining_self_l
 from torch_sparse import spspmm, coalesce
 from layers.sparse_softmax import Sparsemax
 
+
 class TwoHopNeighborhood(object):
     def __call__(self, data):
         edge_index, edge_attr = data.edge_index, data.edge_attr
