@@ -108,8 +108,9 @@ def train():
 
         files = glob.glob('*.pth')
         for f in files:
+            model_name = f.split('.')[0].split('_')[0]
             epoch_nb = int(f.split('.')[0].split('_')[-1])
-            if epoch_nb < best_epoch:
+            if epoch_nb < best_epoch and model_name == model_name_prefix:
                 os.remove(f)
 
     files = glob.glob('*.pth')
