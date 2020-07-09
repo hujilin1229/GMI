@@ -30,8 +30,18 @@ parser.add_argument('--patience', type=int, default=100, help='patience for earl
 
 parser.add_argument('--negative_num', type=int, default=5,
                     help='number of negative examples used in the discriminator (default: 5)')
-
 args = parser.parse_args()
+
+if not args.structure_learning:
+    model_name_prefix = 'NSL'
+elif args.sample_neighbor and args.sparse_attention:
+    model_name_prefix = 'HOP'
+elif not args.sparse_attention:
+    model_name_prefix = 'DEN'
+else:
+    model_name_prefix = 'FIN'
+
+
 torch.manual_seed(args.seed)
 if torch.cuda.is_available():
     torch.cuda.manual_seed(args.seed)
@@ -84,7 +94,7 @@ def train():
               'acc_val: {:.6f}'.format(acc_val), 'time: {:.6f}s'.format(time.time() - t))
 
         val_loss_values.append(loss_val)
-        torch.save(model.state_dict(), '{}.pth'.format(epoch))
+        torch.save(model.state_dict(), '{}_{}.pth'.format(model_name_prefix, epoch))
         if val_loss_values[-1] < min_loss:
             min_loss = val_loss_values[-1]
             best_epoch = epoch
@@ -97,13 +107,13 @@ def train():
 
         files = glob.glob('*.pth')
         for f in files:
-            epoch_nb = int(f.split('.')[0])
+            epoch_nb = int(f.split('.')[0].split('_')[-1])
             if epoch_nb < best_epoch:
                 os.remove(f)
 
     files = glob.glob('*.pth')
     for f in files:
-        epoch_nb = int(f.split('.')[0])
+        epoch_nb = int(f.split('.')[0].split('_')[-1])
         if epoch_nb > best_epoch:
             os.remove(f)
     print('Optimization Finished! Total time elapsed: {:.6f}'.format(time.time() - t))
@@ -128,7 +138,7 @@ if __name__ == '__main__':
     # Model training
     best_model = train()
     # Restore best model for test set
-    model.load_state_dict(torch.load('{}.pth'.format(best_model)))
+    model.load_state_dict(torch.load('{}_{}.pth'.format(model_name_prefix, best_model)))
     test_acc, test_loss = compute_test(test_loader)
     print('Test set results, loss = {:.6f}, accuracy = {:.6f}'.format(test_loss, test_acc))
 
